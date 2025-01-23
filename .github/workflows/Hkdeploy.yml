@@ -1,0 +1,49 @@
+name: Manual Deploy to Heroku (No Secrets)
+
+on:
+  workflow_dispatch:
+    inputs:
+      heroku_app_name:
+        description: "Enter your Heroku App Name"
+        required: true
+      heroku_email:
+        description: "Enter your Heroku Account Email"
+        required: true
+      heroku_api_key:
+        description: "Enter your Heroku API Key"
+        required: true
+      team_name:
+        description: "Enter your Heroku Team Name (optional)"
+        required: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    # কোড চেকআউট
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    # Docker এবং Heroku CLI সেটআপ
+    - name: Login to Heroku
+      run: |
+        echo "$HEROKU_API_KEY" | docker login --username=$HEROKU_EMAIL --password-stdin registry.heroku.com
+
+      env:
+        HEROKU_API_KEY: ${{ github.event.inputs.heroku_api_key }}
+        HEROKU_EMAIL: ${{ github.event.inputs.heroku_email }}
+
+    # Docker ইমেজ তৈরি এবং পুশ
+    - name: Build and Push Docker Image
+      run: |
+        docker build -t registry.heroku.com/${{ github.event.inputs.heroku_app_name }}/web .
+        docker push registry.heroku.com/${{ github.event.inputs.heroku_app_name }}/web
+
+    # Docker ইমেজ রিলিজ
+    - name: Release the Image
+      run: |
+        heroku container:release web --app ${{ github.event.inputs.heroku_app_name }}
+
+      env:
+        HEROKU_API_KEY: ${{ github.event.inputs.heroku_api_key }}
