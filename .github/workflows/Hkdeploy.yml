@@ -1,4 +1,4 @@
-name: Manual Deploy to Heroku (No Secrets)
+name: Deploy to Heroku
 
 on:
   workflow_dispatch:
@@ -18,7 +18,7 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.4
 
     steps:
     # কোড চেকআউট
