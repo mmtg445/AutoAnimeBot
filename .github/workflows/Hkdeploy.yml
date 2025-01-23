@@ -1,4 +1,4 @@
-name: Deploy to Heroku
+name: Manual Deploy to Heroku 
 
 on:
   workflow_dispatch:
@@ -18,32 +18,37 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-20.4
+    runs-on: ubuntu-latest
 
     steps:
     # কোড চেকআউট
     - name: Checkout repository
       uses: actions/checkout@v3
 
-    # Docker এবং Heroku CLI সেটআপ
-    - name: Login to Heroku
+    # Heroku CLI ইনস্টল করা
+    - name: Install Heroku CLI
       run: |
-        echo "$HEROKU_API_KEY" | docker login --username=$HEROKU_EMAIL --password-stdin registry.heroku.com
+        curl https://cli-assets.heroku.com/install.sh | sh
 
-      env:
-        HEROKU_API_KEY: ${{ github.event.inputs.heroku_api_key }}
-        HEROKU_EMAIL: ${{ github.event.inputs.heroku_email }}
+    # Heroku CLI দিয়ে লগইন
+    - name: Login to Heroku Container Registry
+      run: |
+        echo "${{ github.event.inputs.heroku_api_key }}" | docker login --username=${{ github.event.inputs.heroku_email }} --password-stdin registry.heroku.com
 
-    # Docker ইমেজ তৈরি এবং পুশ
+    # Docker ইমেজ বিল্ড এবং পুশ
     - name: Build and Push Docker Image
       run: |
         docker build -t registry.heroku.com/${{ github.event.inputs.heroku_app_name }}/web .
         docker push registry.heroku.com/${{ github.event.inputs.heroku_app_name }}/web
 
-    # Docker ইমেজ রিলিজ
-    - name: Release the Image
+    # Heroku ইমেজ রিলিজ
+    - name: Release Docker Image
       run: |
-        heroku container:release web --app ${{ github.event.inputs.heroku_app_name }}
+        if [ -n "${{ github.event.inputs.team_name }}" ]; then
+          heroku container:release web --app ${{ github.event.inputs.heroku_app_name }} --team ${{ github.event.inputs.team_name }}
+        else
+          heroku container:release web --app ${{ github.event.inputs.heroku_app_name }}
+        fi
 
       env:
         HEROKU_API_KEY: ${{ github.event.inputs.heroku_api_key }}
