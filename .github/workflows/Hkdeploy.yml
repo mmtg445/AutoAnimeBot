@@ -13,8 +13,8 @@ on:
         description: "Enter your Heroku API Key"
         required: true
       heroku_team_name:
-        description: "Enter your Heroku Team Name (optional)"
-        required: false
+        description: "Enter your Heroku Team Name"
+        required: true
 
 jobs:
   deploy:
@@ -35,11 +35,10 @@ jobs:
       run: |
         echo "${{ github.event.inputs.heroku_api_key }}" | docker login --username=${{ github.event.inputs.heroku_email }} --password-stdin registry.heroku.com
 
-    # টিম অ্যাপে নতুন অ্যাপ তৈরি (যদি টিম দেওয়া থাকে)
-    - name: Create App in Team (if applicable)
-      if: ${{ github.event.inputs.heroku_team_name != '' }}
+    # Heroku অ্যাপের স্ট্যাক কনফিগার করা (container স্ট্যাকে সেট করা)
+    - name: Set Heroku Stack to Container
       run: |
-        heroku apps:create ${{ github.event.inputs.heroku_app_name }} --team ${{ github.event.inputs.heroku_team_name }}
+        heroku stack:set container --app ${{ github.event.inputs.heroku_app_name }}
       env:
         HEROKU_API_KEY: ${{ github.event.inputs.heroku_api_key }}
 
