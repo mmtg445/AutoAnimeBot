@@ -35,6 +35,14 @@ jobs:
       run: |
         echo "${{ github.event.inputs.heroku_api_key }}" | docker login --username=${{ github.event.inputs.heroku_email }} --password-stdin registry.heroku.com
 
+    # টিম অ্যাপে নতুন অ্যাপ তৈরি (যদি টিম দেওয়া থাকে)
+    - name: Create App in Team (if applicable)
+      if: ${{ github.event.inputs.heroku_team_name != '' }}
+      run: |
+        heroku apps:create ${{ github.event.inputs.heroku_app_name }} --team ${{ github.event.inputs.heroku_team_name }}
+      env:
+        HEROKU_API_KEY: ${{ github.event.inputs.heroku_api_key }}
+
     # Docker ইমেজ বিল্ড এবং পুশ
     - name: Build and Push Docker Image
       run: |
@@ -44,11 +52,6 @@ jobs:
     # Heroku ইমেজ রিলিজ
     - name: Release Docker Image
       run: |
-        if [ -n "${{ github.event.inputs.heroku_team_name }}" ]; then
-          heroku container:release web --app ${{ github.event.inputs.heroku_app_name }} --team ${{ github.event.inputs.heroku_team_name }}
-        else
-          heroku container:release web --app ${{ github.event.inputs.heroku_app_name }}
-        fi
-
+        heroku container:release web --app ${{ github.event.inputs.heroku_app_name }}
       env:
         HEROKU_API_KEY: ${{ github.event.inputs.heroku_api_key }}
