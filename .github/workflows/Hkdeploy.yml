@@ -1,4 +1,4 @@
-name: Manual Deploy to Heroku (With Team Name)
+name: Manual Deploy to Heroku
 
 on:
   workflow_dispatch:
@@ -12,7 +12,7 @@ on:
       heroku_api_key:
         description: "Enter your Heroku API Key"
         required: true
-      team_name:
+      heroku_team_name:
         description: "Enter your Heroku Team Name (optional)"
         required: false
 
@@ -44,8 +44,8 @@ jobs:
     # Heroku ইমেজ রিলিজ
     - name: Release Docker Image
       run: |
-        if [ -n "${{ github.event.inputs.team_name }}" ]; then
-          heroku container:release web --app ${{ github.event.inputs.heroku_app_name }} --team ${{ github.event.inputs.team_name }}
+        if [ -n "${{ github.event.inputs.heroku_team_name }}" ]; then
+          heroku container:release web --app ${{ github.event.inputs.heroku_app_name }} --team ${{ github.event.inputs.heroku_team_name }}
         else
           heroku container:release web --app ${{ github.event.inputs.heroku_app_name }}
         fi
